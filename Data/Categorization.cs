@@ -1,11 +1,15 @@
-﻿namespace Pindex.Data {
+﻿using System.Text.Json.Serialization;
+
+namespace Pindex.Data {
 
     public class Categorization {
 
         //PK
+        [JsonPropertyName("categorizationId")]
         public int CategorizationId { get; set; }
 
         //Per-categorization data
+        [JsonPropertyName("name")]
         public required string Name { get; set; }
 
         //Many-to-many data
