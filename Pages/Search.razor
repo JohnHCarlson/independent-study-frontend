@@ -1,9 +1,11 @@
 ﻿@using Data
 @using Components
+@using System.Text
 @using System.Text.Json
 @using System.Text.Json.Serialization
 @using Microsoft.AspNetCore.WebUtilities
 @inject IHttpClientFactory ClientFactory
+@inject DialogService DialogService
 
 @page "/search"
 
@@ -54,6 +56,10 @@
                     </div>
                     <div class="col-2 align-items-center">
                         <RadzenButton Click=@(args => SearchItems()) Text="Search" ButtonStyle="ButtonStyle.Primary" />
+                        <RadzenButton Click=@(args => ClearSearchInput()) Text="Clear" ButtonStyle="ButtonStyle.Primary" />
+                        <RadzenButton Click=@(args => ShowAddDialog()) Text="Add New Pin" ButtonStyle="ButtonStyle.Primary" />
+
+
                     </div>
                 </div>
             </RadzenFieldset>
@@ -102,18 +108,12 @@
         </Template>
     </RadzenDataList>
 
+    <RadzenDialog>
+    </RadzenDialog>
+
     @if (getItemsError)
     {
         <p>Unable to get items.</p>
-    }
-    else
-    {
-        <ul>
-            @foreach (var item in items)
-            {
-                //<Pindex.Components.ItemCard Item=@item/>
-            }
-        </ul>
     }
 </div>
 
@@ -127,6 +127,21 @@
     private string categorizations;
     private string issues;
 
+    private string submitCanorgs;
+    private string submitOffices;
+    private string submitParties;
+    private string submitLocations;
+    private string submitYear;
+    private string submitQuantity;
+    private bool submitWon;
+    private string submitElectionType;
+    private string submitStorageLocation;
+    private string submitNotes;
+    private string submitCategorizations;
+    private string submitIssues;
+
+    private bool dialogVisible;
+
     Item item = new Item();
     bool? won = null;
 
@@ -135,12 +150,11 @@
     }
 
     private bool getItemsError;
-    private bool shouldRender;
+
     IEnumerable<Item> items = Array.Empty<Item>();
 
 
     private async Task SearchItems() {
-
 
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUriFromSearchParams());
         var client = ClientFactory.CreateClient();
@@ -152,9 +166,8 @@
             getItemsError = true;
         }
     }
-
+    
     private Uri BuildUriFromSearchParams() {
-
 
         string baseUri = "https://localhost:7003/api/item";
 
@@ -185,28 +198,187 @@
             queryParams.Add("issues", issues);
         }
 
-
         return new Uri(QueryHelpers.AddQueryString(baseUri, queryParams));
     }
 
-
-    protected override async Task OnInitializedAsync() {
-        //await base.OnInitializedAsync();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7003/api/item");
-
-        //var client = ClientFactory.CreateClient();
-
-        //var response = await client.SendAsync(request);
-
-        //if (response.IsSuccessStatusCode) {
-        //    using var responseStream = await response.Content.ReadAsStreamAsync();
-       //     items = await JsonSerializer.DeserializeAsync<IEnumerable<Item>>(responseStream);
-       // } else {
-       //     getItemsError = true;
-       // }
-
-        //shouldRender = true;
-
+    private void ClearSearchInput() {
+        
     }
+
+    async Task ShowAddDialog() {
+        var result = await DialogService.OpenAsync("Submit New Item", ds =>
+    @<div>
+        <RadzenTemplateForm Data=@item>
+            <div class="container-fluid">
+                    <div class="row">
+                        <div class="col">
+                            <RadzenLabel Text="Candidate / Organization Names (comma delimited)" />
+                            <RadzenTextBox @bind-Value="@submitCanorgs" style="width: 100%;" Name="submitCanorgs" />
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div class="col">
+                            <RadzenLabel Text="Offices (comma delimited)" />
+                        <RadzenTextBox @bind-Value="@submitOffices" style="width: 100%;" Name="submitOffices" />
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div class="col">
+                            <RadzenLabel Text="Locations (comma delimited)" />
+                        <RadzenTextBox @bind-Value="@submitLocations" style="width: 100%;" Name="submitLocations" />
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div class="col">
+                            <RadzenLabel Text="Parties (comma delimited)" />
+                        <RadzenTextBox @bind-Value="@submitParties" style="width: 100%;" Name="submitParties" />
+                        </div>
+                        <div class="col">
+                            <RadzenLabel Text="Election Type" />
+                        <RadzenTextBox @bind-Value="@submitElectionType" style="width: 100%;" Name="submitElectionType" />
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div class="col">
+                            <RadzenLabel Text="Year" />
+                        <RadzenTextBox @bind-Value="@submitYear" style="width: 100%;" Name="submitYear" />
+                        </div>
+                        <div class="col">
+                            <RadzenLabel Text="Quantity" />
+                        <RadzenTextBox @bind-Value="@submitQuantity" style="width: 100%;" Name="submitQuantity" />
+                        </div>
+                        <div class="col">
+                            <RadzenLabel Text="Won" />
+                        <RadzenCheckBox @bind-Value="@submitWon" style="width: 100%;" Name="submitWon" />
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div class="col">
+                            <RadzenLabel Text="Storage Location" />
+                        <RadzenTextBox @bind-Value="@submitStorageLocation" style="width: 100%;" Name="submitStorageLocation" />
+                        </div>
+                        <div class="col">
+                            <RadzenLabel Text="Notes" />
+                        <RadzenTextBox @bind-Value="@submitNotes" style="width: 100%;" Name="submitNotes" />
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div class="col-md-5">
+                            <RadzenLabel Text="Categorizations" />
+                        <RadzenTextBox @bind-Value="@submitCategorizations" style="width: 100%;" Name="submitCategorizations" />
+                        </div>
+                        <div class="col-md-5">
+                            <RadzenLabel Text="Issues" />
+                        <RadzenTextBox @bind-Value="@submitIssues" style="width: 100%;" Name="submitIssues" />
+                        </div>
+                        <div class="col-2 align-items-center">
+                            <RadzenButton Click=@(args => SubmitItem(ds)) Text="Submit" ButtonStyle="ButtonStyle.Primary" />
+                        <RadzenButton Click=@(args => ds.Close(false)) Text="Clear" ButtonStyle="ButtonStyle.Primary" />
+                        </div>
+                    </div>
+            </div>
+        </RadzenTemplateForm>
+        </div>
+    );
+        Console.WriteLine($"Dialog result: {result}");
+    }
+
+    private async Task SubmitItem(DialogService ds) {
+
+        Item item = new Item();
+
+        foreach(string canorgSubStr in submitCanorgs.Split(",")) {
+
+            Canorg newCanorg = new Canorg
+            {
+                Name = canorgSubStr,
+            };
+            item.Canorgs.Add(newCanorg);
+        }
+
+        foreach (string officeSubStr in submitOffices.Split(",")) {
+
+            Office newOffice = new Office {
+                    Name = officeSubStr,
+                };
+            item.Offices.Add(newOffice);
+        }
+
+        foreach (string partySubStr in submitParties.Split(",")) {
+
+            Party newParty = new Party{
+                    Name = partySubStr,
+                };
+            item.Parties.Add(newParty);
+        }
+
+        foreach (string locationSubStr in submitLocations.Split(",")) {
+
+            Location newLocation = new Location {
+                    Name = locationSubStr,
+                };
+            item.Locations.Add(newLocation);
+        }
+
+        foreach (string catagorizationSubStr in submitCategorizations.Split(",")) {
+
+            Categorization newCategorization = new Categorization {
+                    Name = catagorizationSubStr,
+                };
+            item.Categorizations.Add(newCategorization);
+        }
+
+        foreach (string issueSubStr in submitIssues.Split(",")) {
+
+            Issue newIssue = new Issue {
+                    Name = issueSubStr,
+                };
+            item.Issues.Add(newIssue);
+        }
+
+        item.ElectionYear = submitYear;
+        item.Quantity = int.Parse(submitQuantity);
+        item.Won = submitWon;
+        item.ElectionType = submitElectionType;
+        item.StorageLocation = submitStorageLocation;
+        item.Notes = submitNotes;
+
+        using (var submitClient = new HttpClient()) {
+
+            submitClient.BaseAddress = new Uri("https://localhost:7003/api/item");
+            string test = JsonSerializer.Serialize(item);
+            var content = new StringContent(test, Encoding.UTF8, "application/json");
+            var response = await submitClient.PostAsync("Item", content);
+
+            if (response.IsSuccessStatusCode){
+
+                ClearSubmitInput();
+                ds.Close(false);
+
+            } else {
+                await DialogService.OpenAsync("Submit New Item", ds =>
+                    @<div>
+                        ERROR
+                    </div>
+                    );
+            }
+        }
+    }
+
+    private void ClearSubmitInput() {
+        
+    }
+
 }
