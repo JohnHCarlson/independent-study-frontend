@@ -4,6 +4,15 @@ namespace Pindex.Data {
 
     public class Item {
 
+        public Item() {
+            this.Canorgs = new List<Canorg>();
+            this.Offices = new List<Office>();
+            this.Locations = new List<Location>();
+            this.Parties = new List<Party>();
+            this.Categorizations = new List<Categorization>();
+            this.Issues = new List<Issue>();
+        }
+
         //PK
         [JsonPropertyName("itemId")]
         public int ItemId { get; set; }
@@ -28,19 +37,19 @@ namespace Pindex.Data {
 
         //One-to-many data
         [JsonPropertyName("canorgs")]
-        public ICollection<Canorg>? Canorgs { get; set; }
+        public List<Canorg>? Canorgs { get; set; }
         [JsonPropertyName("offices")]
-        public ICollection<Office>? Offices { get; set; }
+        public List<Office>? Offices { get; set; }
         [JsonPropertyName("locations")]
-        public ICollection<Location>? Locations { get; set; }
+        public List<Location>? Locations { get; set; }
         [JsonPropertyName("parties")]
-        public ICollection<Party>? Parties { get; set; }
+        public List<Party>? Parties { get; set; }
 
         //Many-to-many data
         [JsonPropertyName("categorizations")]
-        public ICollection<Categorization>? Categorizations { get; set; }
+        public List<Categorization>? Categorizations { get; set; }
         [JsonPropertyName("issues")]
-        public ICollection<Issue>? Issues { get; set; }
+        public List<Issue>? Issues { get; set; }
         
     }
 }
