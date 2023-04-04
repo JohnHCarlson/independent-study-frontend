@@ -13,7 +13,7 @@ namespace Pindex.Data {
 
         //Per-canorg data
         [JsonPropertyName("name")]
-        public required string Name { get; set; }
+        public string Name { get; set; }
 
         //Many-to-one data
         [JsonPropertyName("itemId")]

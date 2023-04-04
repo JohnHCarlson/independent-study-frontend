@@ -3,13 +3,17 @@
 namespace Pindex.Data {
     public class Party {
 
+        public Party(string name) {
+           Name = name;
+        }
+
         //PK
         [JsonPropertyName("partyId")]
         public int PartyId { get; set; }
 
         //Per-issue data
         [JsonPropertyName("name")]
-        public required string Name { get; set; }
+        public string Name { get; set; }
 
         //Many-to-one data
         [JsonPropertyName("itemId")]

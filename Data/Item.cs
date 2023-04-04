@@ -24,7 +24,7 @@ namespace Pindex.Data {
         [JsonPropertyName("quantity")]
         public int Quantity { get; set; }
         [JsonPropertyName("won")]
-        public bool? Won { get; set; }
+        public bool Won { get; set; }
         [JsonPropertyName("storageLocation")]
         public string? StorageLocation { get; set; }
         [JsonPropertyName("notes")]
@@ -36,6 +36,9 @@ namespace Pindex.Data {
         [JsonIgnore]
         [JsonPropertyName("imageFile")]
         public IBrowserFile? imageFile { get; set; }
+
+        [JsonPropertyName("imageUrl")]
+        public string imageUrl { get; set; }
 
         //One-to-many data
         [JsonPropertyName("canorgs")]

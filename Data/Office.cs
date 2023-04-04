@@ -4,13 +4,17 @@ namespace Pindex.Data {
 
     public class Office {
 
+        public Office(string name) {
+            Name = name;
+        }
+
         //PK
         [JsonPropertyName("officeId")]
         public int OfficeId { get; set; }
 
         //Per-office data
         [JsonPropertyName("name")]
-        public required string Name { get; set; }
+        public string Name { get; set; }
 
         //Many-to-one data
         [JsonPropertyName("itemId")]
