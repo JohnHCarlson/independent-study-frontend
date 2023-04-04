@@ -68,48 +68,63 @@
         </div>
     </RadzenTemplateForm>
     
-    <RadzenDataList AllowVirtualization=false Data="@items" TItem="Item" PageSize="10" ShowPagingSummary=true>
+
+
+    <RadzenDataList WrapItems="true" AllowPaging="false" Data="@items" TItem="Item">
         <Template Context="item">
-            <RadzenCard>
-                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start">
-                    <RadzenImage></RadzenImage>
+            <RadzenCard Class="rz-my-12 rz-mx-auto" Style="max-width: 420px">
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
+                    <RadzenImage Path="@item?.imageUrl" Style="width: 100px; height: 100px; border-radius: 50%;"></RadzenImage>
                     <RadzenStack Gap="0">
-                        <RadzenText TextStyle="TextStyle.Overline">Election</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1"><b>@item.ElectionType</b></RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline">Date</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1"><b>@item.ElectionYear</b></RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline">Location</RadzenText>
-                        @foreach (var location in @item.Locations) {
-                            <RadzenText TextStyle="TextStyle.Body1"><b>@location.Name</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Candidates / Organizations</RadzenText>
+                        @foreach (Canorg canorg in item.Canorgs) {
+                            <RadzenText TextStyle="TextStyle.Body1"><b>@(canorg.Name)</b></RadzenText>
+                        }
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Offices</RadzenText>
+                        @foreach (Office office in item.Offices) {
+                            <RadzenText TextStyle="TextStyle.Body1"><b>@(office.Name)</b></RadzenText>
                         }
                     </RadzenStack>
                 </RadzenStack>
-                <RadzenCard>
-                    <RadzenRow>
-                        <RadzenColumn>
-                            @foreach (var canorg in @item.Canorgs) {
-                                <RadzenText TextStyle="TextStyle.Overline">Candidate</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@canorg.Name</b></RadzenText>
+                <RadzenCard class="rz-background-color-primary-lighter rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+                    <RadzenText TextStyle="TextStyle.H6" class="rz-color-primary-light"><strong>Election Information</strong></RadzenText>
+                    <RadzenRow RowGap="0">
+                        <RadzenColumn SizeSM="4">
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Location</RadzenText>
+                            @foreach (Location location in item.Locations) {
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(location?.Name)</b></RadzenText>
+                            }
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Party</RadzenText>
+                            @foreach (Party party in item.Parties) {
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(party?.Name)</b></RadzenText>
                             }
                         </RadzenColumn>
-                        <RadzenColumn>
-                            @foreach (var office in @item.Offices) {
-                                <RadzenText TextStyle="TextStyle.Overline">Office</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@office.Name</b></RadzenText>
+                        <RadzenColumn SizeSM="4">
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Year</RadzenText>
+                            @if (String.IsNullOrEmpty(item.ElectionYear)) {
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@("Unknown")</b></RadzenText>
+                            } else {
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(item?.ElectionYear)</b></RadzenText>
+                            }
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Election Type</RadzenText>
+                            @if (String.IsNullOrEmpty(item.ElectionYear)) {
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@("Unknown")</b></RadzenText>
+                            } else {
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(item?.ElectionType)</b></RadzenText>
                             }
                         </RadzenColumn>
-                        <RadzenColumn>
-                            @foreach (var party in @item.Parties) {
-                                <RadzenText TextStyle="TextStyle.Overline">Party</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@party.Name</b></RadzenText>
-                            }
+                        <RadzenColumn SizeSM="4">
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Quantity</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"><b>@(item?.Quantity)</b></RadzenText>
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Won</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"><b>@(item.Won ? "Yes" : "No")</b></RadzenText>
                         </RadzenColumn>
                     </RadzenRow>
                 </RadzenCard>
             </RadzenCard>
         </Template>
     </RadzenDataList>
-
+    <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@pageSize" PageNumbersCount="5"/>
     <RadzenDialog>
     </RadzenDialog>
 
@@ -133,19 +148,18 @@
     private string submitOffices;
     private string submitParties;
     private string submitLocations;
-    private string submitYear;
-    private string submitQuantity;
-    private bool submitWon;
-    private string submitElectionType;
-    private string submitStorageLocation;
-    private string submitNotes;
     private string submitCategorizations;
     private string submitIssues;
-    private IFormFile submitImage;
+
+    string pagingSummaryFormat = "Displaying page {0} of {1} (total {2} records)";
+    int pageSize = 9;
+    int count;
+    IEnumerable<Item> items;
 
     private bool dialogVisible;
 
     Item item = new Item();
+
     bool? won = null;
 
     private void OnClick() {    
@@ -154,7 +168,7 @@
 
     private bool getItemsError;
 
-    IEnumerable<Item> items = Array.Empty<Item>();
+    //IEnumerable<Item> items = Array.Empty<Item>();
 
 
     private async Task SearchItems() {
@@ -165,11 +179,12 @@
         if (response.IsSuccessStatusCode) {
             using var responseStream = await response.Content.ReadAsStreamAsync();
             items = await JsonSerializer.DeserializeAsync<IEnumerable<Item>>(responseStream);
+            count = items.Count();
         } else {
             getItemsError = true;
         }
     }
-    
+
     private Uri BuildUriFromSearchParams() {
 
         string baseUri = "https://localhost:7003/api/item";
@@ -205,20 +220,79 @@
     }
 
     private void ClearSearchInput() {
-        
+
     }
 
     async Task ShowAddDialog() {
-        var result = await DialogService.OpenAsync("Submit New IWWWtem", ds =>
+        var result = await DialogService.OpenAsync("Submit New Item", ds =>
     @<div>
-
-        <RadzenLabel Text="File Upload" />
-        <InputFile OnChange="OnInputFileChange"></InputFile>
-
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    <RadzenLabel Text="Candidates & Organizations" />
+                    <RadzenTextBox @bind-Value="@submitCanorgs" Name="submitCanorgs" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Offices" />
+                    <RadzenTextBox @bind-Value="@submitOffices" Name="submitOffices" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <RadzenLabel Text="Locations" />
+                    <RadzenTextBox @bind-Value="@submitLocations" Name="submitLocations" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Parties" />
+                    <RadzenTextBox @bind-Value="@submitParties" Name="submitParties" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <RadzenLabel Text="Election Year" />
+                    <RadzenNumeric ShowUpDown="false" @bind-Value="@item.ElectionYear" Name="submitYear" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Election Type" />
+                    <RadzenTextBox  @bind-Value="@item.ElectionType" Name="submitElectionType" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Won" />
+                    <RadzenSwitch @bind-Value="@item.Won" Name="submitWon" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <RadzenLabel Text="Categorizations" />
+                    <RadzenTextBox @bind-Value="@submitCategorizations" Name="submitCategorizations" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Issues" />
+                    <RadzenTextBox @bind-Value="@submitIssues" Name="submitIssues" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <RadzenLabel Text="Quantity" />
+                    <RadzenNumeric ShowUpDown="false" @bind-Value="@item.Quantity" Name="submitQuantity" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Storage Location" />
+                    <RadzenTextBox @bind-Value="@item.StorageLocation" Name="submitStorageLocation" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Notes" />
+                    <RadzenTextBox @bind-Value="@item.Notes" Name="submitNotes" />
+                </div>
+                <div class="col">            
+                    <RadzenLabel Text="File Upload" />
+                    <InputFile OnChange="OnInputFileChange"></InputFile>
+                </div>
+            </div>
+        </div>    
         <RadzenButton Click=@(args => SubmitItem()) Text="Submit" ButtonStyle="ButtonStyle.Primary" />
         </div>
-    );
-        Console.WriteLine($"Dialog result: {result}");
+    , new DialogOptions());
     }
 
     private async Task OnInputFileChange(InputFileChangeEventArgs args) {
@@ -237,8 +311,7 @@
 
     private async void SubmitItem() {
 
-        item.ElectionYear = "12";
-        item.Quantity = 1232;
+        HandleNestedData();
 
         var json = JsonSerializer.Serialize(item);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -260,18 +333,58 @@
                 var postImageResponse = await client.PostAsync(url, formData);
 
                 if (postImageResponse.IsSuccessStatusCode) {
-                    
+                    item = new Item();
                 }
             }
         }
     }
 
-    private void UpdateItem(IFormFile value, string name) {
-        //item.imageFile = value;
-    }
 
-    private void ClearSubmitInput() {
-        
+    private void HandleNestedData() {
+
+        if (!String.IsNullOrWhiteSpace(submitCanorgs)) {
+            foreach (string subCanorg in submitCanorgs.Split(',')) {
+                Canorg canorg = new Canorg(subCanorg);
+                item.Canorgs.Add(canorg);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitOffices)) {
+
+            foreach (string subOffice in submitOffices.Split(',')) {
+                Office office = new Office(subOffice);
+                item.Offices.Add(office);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitLocations)) {
+            foreach (string subLocation in submitLocations.Split(',')) {
+                Location location = new Location(subLocation);
+                item.Locations.Add(location);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitParties)) {
+            foreach(string subParty in submitParties.Split(',')) {
+            Party party = new Party(subParty);
+            item.Parties.Add(party);
+        }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitCategorizations)) {
+            foreach (string subCategory in submitCategorizations.Split(',')) {
+                Categorization category = new Categorization(subCategory);
+                item.Categorizations.Add(category);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitIssues)) {
+            foreach (string subIssue in submitIssues.Split(',')) {
+                Issue issue = new Issue(subIssue);
+                item.Issues.Add(issue);
+            }
+        }
+
     }
 
 }
