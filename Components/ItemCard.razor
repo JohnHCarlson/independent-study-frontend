@@ -1,0 +1,43 @@
+﻿@using Data
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start">
+        <RadzenImage></RadzenImage>
+        <RadzenStack Gap="0">
+            <RadzenText TextStyle="TextStyle.Overline">Election</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@Item.ElectionType</b></RadzenText>
+            <RadzenText TextStyle="TextStyle.Overline">Date</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@Item.ElectionYear</b></RadzenText>
+            <RadzenText TextStyle="TextStyle.Overline">Location</RadzenText>
+            @foreach (var location in @Item.Locations) {
+                <RadzenText TextStyle="TextStyle.Body1"><b>@location.Name</b></RadzenText>
+            }
+        </RadzenStack>
+    </RadzenStack>
+    <RadzenCard>
+        <RadzenRow>
+            <RadzenColumn>
+                @foreach (var canorg in @Item.Canorgs) {
+                    <RadzenText TextStyle="TextStyle.Overline">Candidate</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@canorg.Name</b></RadzenText>
+                }
+            </RadzenColumn>
+            <RadzenColumn>
+                @foreach (var office in @Item.Offices) {
+                    <RadzenText TextStyle="TextStyle.Overline">Office</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@office.Name</b></RadzenText>
+                }
+            </RadzenColumn>
+            <RadzenColumn>
+                @foreach (var party in @Item.Parties) {
+                    <RadzenText TextStyle="TextStyle.Overline">Party</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@party.Name</b></RadzenText>
+                }
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenCard>
+</RadzenCard>
+@code {
+    [Parameter]
+    public Item Item { get; set; }
+}
