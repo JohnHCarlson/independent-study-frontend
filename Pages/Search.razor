@@ -4,6 +4,7 @@
 @using System.Text.Json
 @using System.Text.Json.Serialization
 @using Microsoft.AspNetCore.WebUtilities
+@using System.Net.Http.Headers
 @inject IHttpClientFactory ClientFactory
 @inject DialogService DialogService
 
@@ -45,15 +46,16 @@
                 </div>
                 <div class="row">
 
-                    <div class="col-md-5">
+                    <div class="col">
                         <RadzenLabel Text="Categorizations" />
                         <RadzenTextBox @bind-Value="@categorizations" style="width: 100%;" Name="Categorizations" />
                     </div>
-                    <div class="col-md-5">
+                    <div class="col">
                         <RadzenLabel Text="Issues" />
                         <RadzenTextBox @bind-Value="@issues" style="width: 100%;" Name="Issues" />
                         
                     </div>
+
                     <div class="col-2 align-items-center">
                         <RadzenButton Click=@(args => SearchItems()) Text="Search" ButtonStyle="ButtonStyle.Primary" />
                         <RadzenButton Click=@(args => ClearSearchInput()) Text="Clear" ButtonStyle="ButtonStyle.Primary" />
@@ -139,6 +141,7 @@
     private string submitNotes;
     private string submitCategorizations;
     private string submitIssues;
+    private IFormFile submitImage;
 
     private bool dialogVisible;
 
@@ -206,175 +209,65 @@
     }
 
     async Task ShowAddDialog() {
-        var result = await DialogService.OpenAsync("Submit New Item", ds =>
+        var result = await DialogService.OpenAsync("Submit New IWWWtem", ds =>
     @<div>
-        <RadzenTemplateForm Data=@item>
-            <div class="container-fluid">
-                    <div class="row">
-                        <div class="col">
-                            <RadzenLabel Text="Candidate / Organization Names (comma delimited)" />
-                            <RadzenTextBox @bind-Value="@submitCanorgs" style="width: 100%;" Name="submitCanorgs" />
-                        </div>
 
-                    </div>
-                    <div class="row">
+        <RadzenLabel Text="File Upload" />
+        <InputFile OnChange="OnInputFileChange"></InputFile>
 
-                        <div class="col">
-                            <RadzenLabel Text="Offices (comma delimited)" />
-                        <RadzenTextBox @bind-Value="@submitOffices" style="width: 100%;" Name="submitOffices" />
-                        </div>
-
-                    </div>
-                    <div class="row">
-
-                        <div class="col">
-                            <RadzenLabel Text="Locations (comma delimited)" />
-                        <RadzenTextBox @bind-Value="@submitLocations" style="width: 100%;" Name="submitLocations" />
-                        </div>
-
-                    </div>
-                    <div class="row">
-
-                        <div class="col">
-                            <RadzenLabel Text="Parties (comma delimited)" />
-                        <RadzenTextBox @bind-Value="@submitParties" style="width: 100%;" Name="submitParties" />
-                        </div>
-                        <div class="col">
-                            <RadzenLabel Text="Election Type" />
-                        <RadzenTextBox @bind-Value="@submitElectionType" style="width: 100%;" Name="submitElectionType" />
-                        </div>
-
-                    </div>
-                    <div class="row">
-
-                        <div class="col">
-                            <RadzenLabel Text="Year" />
-                        <RadzenTextBox @bind-Value="@submitYear" style="width: 100%;" Name="submitYear" />
-                        </div>
-                        <div class="col">
-                            <RadzenLabel Text="Quantity" />
-                        <RadzenTextBox @bind-Value="@submitQuantity" style="width: 100%;" Name="submitQuantity" />
-                        </div>
-                        <div class="col">
-                            <RadzenLabel Text="Won" />
-                        <RadzenCheckBox @bind-Value="@submitWon" style="width: 100%;" Name="submitWon" />
-                        </div>
-
-                    </div>
-                    <div class="row">
-
-                        <div class="col">
-                            <RadzenLabel Text="Storage Location" />
-                        <RadzenTextBox @bind-Value="@submitStorageLocation" style="width: 100%;" Name="submitStorageLocation" />
-                        </div>
-                        <div class="col">
-                            <RadzenLabel Text="Notes" />
-                        <RadzenTextBox @bind-Value="@submitNotes" style="width: 100%;" Name="submitNotes" />
-                        </div>
-
-                    </div>
-                    <div class="row">
-
-                        <div class="col-md-5">
-                            <RadzenLabel Text="Categorizations" />
-                        <RadzenTextBox @bind-Value="@submitCategorizations" style="width: 100%;" Name="submitCategorizations" />
-                        </div>
-                        <div class="col-md-5">
-                            <RadzenLabel Text="Issues" />
-                        <RadzenTextBox @bind-Value="@submitIssues" style="width: 100%;" Name="submitIssues" />
-                        </div>
-                        <div class="col-2 align-items-center">
-                            <RadzenButton Click=@(args => SubmitItem(ds)) Text="Submit" ButtonStyle="ButtonStyle.Primary" />
-                        <RadzenButton Click=@(args => ds.Close(false)) Text="Clear" ButtonStyle="ButtonStyle.Primary" />
-                        </div>
-                    </div>
-            </div>
-        </RadzenTemplateForm>
+        <RadzenButton Click=@(args => SubmitItem()) Text="Submit" ButtonStyle="ButtonStyle.Primary" />
         </div>
     );
         Console.WriteLine($"Dialog result: {result}");
     }
 
-    private async Task SubmitItem(DialogService ds) {
+    private async Task OnInputFileChange(InputFileChangeEventArgs args) {
 
-        Item item = new Item();
+        item.imageFile = args.File;
 
-        foreach(string canorgSubStr in submitCanorgs.Split(",")) {
+    }
 
-            Canorg newCanorg = new Canorg
-            {
-                Name = canorgSubStr,
-            };
-            item.Canorgs.Add(newCanorg);
-        }
+    public class UploadResult {
+        public bool Uploaded { get; set; }
+        public string? FileName { get; set; }
+        public string? StoredFileName { get; set; }
+        public int ErrorCode { get; set; }
+    }
 
-        foreach (string officeSubStr in submitOffices.Split(",")) {
 
-            Office newOffice = new Office {
-                    Name = officeSubStr,
-                };
-            item.Offices.Add(newOffice);
-        }
+    private async void SubmitItem() {
 
-        foreach (string partySubStr in submitParties.Split(",")) {
+        item.ElectionYear = "12";
+        item.Quantity = 1232;
 
-            Party newParty = new Party{
-                    Name = partySubStr,
-                };
-            item.Parties.Add(newParty);
-        }
+        var json = JsonSerializer.Serialize(item);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        foreach (string locationSubStr in submitLocations.Split(",")) {
+        var formData = new MultipartFormDataContent();
+        formData.Add(new StreamContent(item.imageFile.OpenReadStream()), "imageFile", item.imageFile.Name);
 
-            Location newLocation = new Location {
-                    Name = locationSubStr,
-                };
-            item.Locations.Add(newLocation);
-        }
+        using(HttpClient client = new HttpClient()) {
+            var response = await client.PostAsync("https://localhost:7003/api/item", content);
 
-        foreach (string catagorizationSubStr in submitCategorizations.Split(",")) {
+            if (response.IsSuccessStatusCode) {
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                Item responseItem = await JsonSerializer.DeserializeAsync<Item>(responseStream);
 
-            Categorization newCategorization = new Categorization {
-                    Name = catagorizationSubStr,
-                };
-            item.Categorizations.Add(newCategorization);
-        }
+                int id = responseItem.ItemId;
 
-        foreach (string issueSubStr in submitIssues.Split(",")) {
+                string url = "https://localhost:7003/api/Item/images/" + responseItem.ItemId;
 
-            Issue newIssue = new Issue {
-                    Name = issueSubStr,
-                };
-            item.Issues.Add(newIssue);
-        }
+                var postImageResponse = await client.PostAsync(url, formData);
 
-        item.ElectionYear = submitYear;
-        item.Quantity = int.Parse(submitQuantity);
-        item.Won = submitWon;
-        item.ElectionType = submitElectionType;
-        item.StorageLocation = submitStorageLocation;
-        item.Notes = submitNotes;
-
-        using (var submitClient = new HttpClient()) {
-
-            submitClient.BaseAddress = new Uri("https://localhost:7003/api/item");
-            string test = JsonSerializer.Serialize(item);
-            var content = new StringContent(test, Encoding.UTF8, "application/json");
-            var response = await submitClient.PostAsync("Item", content);
-
-            if (response.IsSuccessStatusCode){
-
-                ClearSubmitInput();
-                ds.Close(false);
-
-            } else {
-                await DialogService.OpenAsync("Submit New Item", ds =>
-                    @<div>
-                        ERROR
-                    </div>
-                    );
+                if (postImageResponse.IsSuccessStatusCode) {
+                    
+                }
             }
         }
+    }
+
+    private void UpdateItem(IFormFile value, string name) {
+        //item.imageFile = value;
     }
 
     private void ClearSubmitInput() {
