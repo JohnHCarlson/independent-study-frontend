@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using System.Text.Json.Serialization;
 
 namespace Pindex.Data {
 
@@ -32,8 +33,9 @@ namespace Pindex.Data {
         public string? ElectionType { get; set; }
 
         //One-to-one data
-        [JsonPropertyName("image")]
-        public Image? Image { get; set; }
+        [JsonIgnore]
+        [JsonPropertyName("imageFile")]
+        public IBrowserFile? imageFile { get; set; }
 
         //One-to-many data
         [JsonPropertyName("canorgs")]

@@ -6,7 +6,7 @@
         
         //Per-image data
         public DateTime UploadDate { get; set; }
-        public required string FileName { get; set; }
+        public string FileName { get; set; }
         
         //One-to-one data
         public int ItemId { get; set; }

@@ -3,6 +3,10 @@
 namespace Pindex.Data {
     public class Canorg {
 
+        public Canorg(string name) {
+            Name = name;
+        }
+
         //PK
         [JsonPropertyName("canorgId")]
         public int CanorgId { get; set; }
