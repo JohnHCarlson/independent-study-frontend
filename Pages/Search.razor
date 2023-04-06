@@ -7,6 +7,7 @@
 @using System.Net.Http.Headers
 @inject IHttpClientFactory ClientFactory
 @inject DialogService DialogService
+@inject HttpClient Httpclient
 
 @page "/search"
 
@@ -74,7 +75,7 @@
         <Template Context="item">
             <RadzenCard Class="rz-my-12 rz-mx-auto" Style="max-width: 420px">
                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
-                    <RadzenImage Path="@item?.imageUrl" Style="width: 100px; height: 100px; border-radius: 50%;"></RadzenImage>
+                    <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(File.ReadAllBytes(item.imageUrl))}")" Style="width: 100px; height: 100px; border-radius: 50%;" />
                     <RadzenStack Gap="0">
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Candidates / Organizations</RadzenText>
                         @foreach (Canorg canorg in item.Canorgs) {
@@ -287,6 +288,7 @@
                 <div class="col">            
                     <RadzenLabel Text="File Upload" />
                     <InputFile OnChange="OnInputFileChange"></InputFile>
+                    <RadzenButton Click=@(args => OnInputFileSubmit()) Icon="check" ButtonStyle="ButtonStyle.Primary" />
                 </div>
             </div>
         </div>    
@@ -295,10 +297,26 @@
     , new DialogOptions());
     }
 
-    private async Task OnInputFileChange(InputFileChangeEventArgs args) {
+    private void OnInputFileChange(InputFileChangeEventArgs args) {
 
         item.imageFile = args.File;
+    }
 
+    private async Task OnInputFileSubmit() {
+
+        MultipartFormDataContent data = new MultipartFormDataContent();
+        data.Add(new StreamContent(item.imageFile.OpenReadStream()), "imageFile", item.imageFile.Name);
+
+        using(HttpClient client = new HttpClient()) {
+
+            var response = await client.PostAsync("https://localhost:7003/api/item/images", data);
+            if (response.IsSuccessStatusCode) {
+
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                ImageUploadResponse responseItem = await JsonSerializer.DeserializeAsync<ImageUploadResponse>(responseStream);
+                item.imageUrl = responseItem.imageUrl;
+            }
+        }
     }
 
     public class UploadResult {
@@ -323,18 +341,8 @@
             var response = await client.PostAsync("https://localhost:7003/api/item", content);
 
             if (response.IsSuccessStatusCode) {
-                using var responseStream = await response.Content.ReadAsStreamAsync();
-                Item responseItem = await JsonSerializer.DeserializeAsync<Item>(responseStream);
-
-                int id = responseItem.ItemId;
-
-                string url = "https://localhost:7003/api/Item/images/" + responseItem.ItemId;
-
-                var postImageResponse = await client.PostAsync(url, formData);
-
-                if (postImageResponse.IsSuccessStatusCode) {
-                    item = new Item();
-                }
+     
+                item = new Item();
             }
         }
     }
