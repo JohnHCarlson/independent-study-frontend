@@ -20,6 +20,7 @@
                     <div class="col">
                         <RadzenLabel Text="Candidate / Organization Name" />
                         <RadzenTextBox @bind-Value="@canorgs" style="width: 100%;" Name="Canorgs"/>
+
                     </div>
                     <div class="col">
                         <RadzenLabel Text="Office" />
@@ -145,12 +146,16 @@
     private string categorizations;
     private string issues;
 
-    private string submitCanorgs;
-    private string submitOffices;
-    private string submitParties;
-    private string submitLocations;
-    private string submitCategorizations;
-    private string submitIssues;
+    private string submitCanorgs { get; set; }
+    private string submitOffices { get; set; }
+    private string submitParties { get; set; }
+    private string submitLocations { get; set; }
+    private string submitCategorizations { get; set; }
+    private string submitIssues { get; set; }
+
+    private bool disableSubmitButton = true;
+    private bool disableUploadButton = true;
+    private bool UploadSuccess = false;
 
     string pagingSummaryFormat = "Displaying page {0} of {1} (total {2} records)";
     int pageSize = 9;
@@ -221,31 +226,57 @@
     }
 
     private void ClearSearchInput() {
+        canorgs = "";
+        offices = "";
+        parties = "";
+        locations = "";
+        years = "";
+        elections = "";
+        categorizations = "";
+        issues = "";
+    }
 
+    public void clearAddInput(DialogService ds) {
+
+        submitCanorgs = "";
+        submitOffices = "";
+        submitLocations = "";
+        submitParties = "";
+        submitCategorizations = "";
+        submitIssues = "";
+
+        disableSubmitButton = true;
+        disableUploadButton = true;
+        UploadSuccess = false;
+
+        item = new Item();
+        ds.Refresh();
+
+        
     }
 
     async Task ShowAddDialog() {
         var result = await DialogService.OpenAsync("Submit New Item", ds =>
-    @<div>
+    @<div>                
         <div class="container-fluid">
             <div class="row">
                 <div class="col">
                     <RadzenLabel Text="Candidates & Organizations" />
-                    <RadzenTextBox @bind-Value="@submitCanorgs" Name="submitCanorgs" />
+                    <RadzenTextBox @bind-Value="@submitCanorgs" Change="() => OnInputUpdate(ds)" Name="submitCanorgs" />
                 </div>
                 <div class="col">
                     <RadzenLabel Text="Offices" />
-                    <RadzenTextBox @bind-Value="@submitOffices" Name="submitOffices" />
+                    <RadzenTextBox @bind-Value="@submitOffices" Change="() => OnInputUpdate(ds)" Name="submitOffices" />
                 </div>
             </div>
             <div class="row">
                 <div class="col">
                     <RadzenLabel Text="Locations" />
-                    <RadzenTextBox @bind-Value="@submitLocations" Name="submitLocations" />
+                    <RadzenTextBox @bind-Value="@submitLocations" Change="() => OnInputUpdate(ds)" Name="submitLocations" />
                 </div>
                 <div class="col">
                     <RadzenLabel Text="Parties" />
-                    <RadzenTextBox @bind-Value="@submitParties" Name="submitParties" />
+                    <RadzenTextBox @bind-Value="@submitParties" Change="() => OnInputUpdate(ds)" Name="submitParties" />
                 </div>
             </div>
             <div class="row">
@@ -255,7 +286,7 @@
                 </div>
                 <div class="col">
                     <RadzenLabel Text="Election Type" />
-                    <RadzenTextBox  @bind-Value="@item.ElectionType" Name="submitElectionType" />
+                    <RadzenTextBox @bind-Value="@item.ElectionType" Change="() => OnInputUpdate(ds)" Name="submitElectionType" />
                 </div>
                 <div class="col">
                     <RadzenLabel Text="Won" />
@@ -285,24 +316,70 @@
                     <RadzenLabel Text="Notes" />
                     <RadzenTextBox @bind-Value="@item.Notes" Name="submitNotes" />
                 </div>
-                <div class="col">            
-                    <RadzenLabel Text="File Upload" />
-                    <InputFile OnChange="OnInputFileChange"></InputFile>
-                    <RadzenButton Click=@(args => OnInputFileSubmit()) Icon="check" ButtonStyle="ButtonStyle.Primary" />
+                <div class="col">
+                    <InputFile OnChange=@(args => OnInputFileChange(args, ds))></InputFile>
+                    <RadzenBadge Shade="Shade.Light" Visible=@UploadSuccess BadgeStyle="BadgeStyle.Success" Text="Success" />
                 </div>
             </div>
-        </div>    
-        <RadzenButton Click=@(args => SubmitItem()) Text="Submit" ButtonStyle="ButtonStyle.Primary" />
+        </div>
+        <RadzenButton Click=@(args => SubmitItem(ds)) Disabled=@disableSubmitButton Text="Submit" ButtonStyle="ButtonStyle.Primary" />
+        <RadzenButton Click=@(args => clearAddInput(ds)) Text="Clear" ButtonStyle="ButtonStyle.Primary" />
         </div>
     , new DialogOptions());
     }
 
-    private void OnInputFileChange(InputFileChangeEventArgs args) {
+    private async void OnInputFileChange(InputFileChangeEventArgs args, DialogService ds) {
 
         item.imageFile = args.File;
+
+        MultipartFormDataContent data = new MultipartFormDataContent();
+        data.Add(new StreamContent(item.imageFile.OpenReadStream()), "imageFile", item.imageFile.Name);
+
+        using (HttpClient client = new HttpClient()) {
+
+            var response = await client.PostAsync("https://localhost:7003/api/item/images", data);
+            if (response.IsSuccessStatusCode) {
+
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                ImageUploadResponse responseItem = await JsonSerializer.DeserializeAsync<ImageUploadResponse>(responseStream);
+                item.imageUrl = responseItem.imageUrl;
+                UploadSuccess = true;
+                OnInputUpdate(ds);
+            }
+        }
+
+
+
+        ds.Refresh();
     }
 
-    private async Task OnInputFileSubmit() {
+    private void OnInputUpdate(DialogService ds) {
+
+        if (String.IsNullOrEmpty(submitCanorgs)) {
+            disableSubmitButton = true;
+        }
+        else if (String.IsNullOrEmpty(submitOffices)) {
+            disableSubmitButton = true;
+        } 
+        else if (String.IsNullOrEmpty(submitLocations)) {
+            disableSubmitButton = true;
+        } 
+        else if (String.IsNullOrEmpty(submitParties)) {
+            disableSubmitButton = true;
+        }
+        else if (String.IsNullOrEmpty(item.ElectionType)) {
+            disableSubmitButton = true;
+        }
+        else if(item.imageUrl == null) {
+            disableSubmitButton = true;
+        }
+        else {
+            disableSubmitButton = false;
+        }
+        ds.Refresh();
+    }
+
+    private async Task OnInputFileSubmit(DialogService ds) {
 
         MultipartFormDataContent data = new MultipartFormDataContent();
         data.Add(new StreamContent(item.imageFile.OpenReadStream()), "imageFile", item.imageFile.Name);
@@ -315,6 +392,8 @@
                 using var responseStream = await response.Content.ReadAsStreamAsync();
                 ImageUploadResponse responseItem = await JsonSerializer.DeserializeAsync<ImageUploadResponse>(responseStream);
                 item.imageUrl = responseItem.imageUrl;
+                UploadSuccess = true;
+                OnInputUpdate(ds);
             }
         }
     }
@@ -327,7 +406,8 @@
     }
 
 
-    private async void SubmitItem() {
+
+    private async void SubmitItem(DialogService ds) {
 
         HandleNestedData();
 
@@ -341,8 +421,10 @@
             var response = await client.PostAsync("https://localhost:7003/api/item", content);
 
             if (response.IsSuccessStatusCode) {
-     
-                item = new Item();
+
+                clearAddInput(ds);
+                ds.Refresh();
+                ds.Close(true);
             }
         }
     }
