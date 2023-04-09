@@ -2,5 +2,31 @@
 
 <PageTitle>Pindex</PageTitle>
 
-<h1>Pindex index page</h1>
+<div class="container">
+    
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText TextStyle="TextStyle.DisplayH1" TextAlign="TextAlign.Center"><strong>Pindex</strong></RadzenText>
+            <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">A project by John Carlson</RadzenText>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Center"><strong>What is Pindex?</strong></RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Center">Pindex is a visual index of my collection of political campaign memorabilia, primarily consisting of pins and buttons. It includes a system for submission and retrieval of items, including object data, images, and metadata. It also includes a selection of dynamically collected data and analytics about the Pindex dataset.</RadzenText>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Center"><strong>What went into development?</strong></RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Center">The development process was twofold, including the creation of a backend database and API as well as the frontend that you're viewing now. The backend was written in C# using an ASP.NET Core web API and a Postgres database. The frontend is written in C# with ASP.NET Core Blazor, using components and style from Radzen.</RadzenText>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Center"><strong>Why develop Pindex?</strong></RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Center">The background motivation for this project stems primarily from a personal desire to develop a proper dataset of my (now quite large) collection. It became clear that tracking this data using a traditional spreadsheet wasn't viable, especially once images became a clear necessity. This need for a custom solution combined with my goals of expanding my knowledge of the dotnet suite brought around what eventually became this project.</RadzenText>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <Pindex.Components.RandomItemDisplay/>
+    </RadzenRow>
+</div>
 
