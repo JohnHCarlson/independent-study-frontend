@@ -1,0 +1,34 @@
+﻿@using Data
+@using System.Text.Json
+
+<RadzenDataList WrapItems="true" AllowPaging="false" Data="@items" TItem="Item">
+        <Template Context="item">
+        <Pindex.Components.ItemCard item="@item" />
+    </Template>
+</RadzenDataList>
+<RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="pageSize" PageNumbersCount="5" />
+
+@code {
+    IEnumerable<Item> items;
+
+    string pagingSummaryFormat = "Displaying page {0} of {1} (total {2} records)";
+    int pageSize = 9;
+    int count;
+
+    protected override async Task OnInitializedAsync() {
+
+        using(HttpClient client = new HttpClient()) {
+
+            var response = await client.GetAsync("https://localhost:7003/api/item");
+            if (response.IsSuccessStatusCode) {
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                items = await JsonSerializer.DeserializeAsync<IEnumerable<Item>>(responseStream);
+                items = items.Take(6);
+                count = items.Count();
+            }
+        }
+
+
+       
+    }
+}
