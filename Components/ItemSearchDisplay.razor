@@ -1,0 +1,151 @@
+﻿@using Data
+@using Components
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using Microsoft.AspNetCore.WebUtilities
+
+@inject IHttpClientFactory ClientFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data=@item>
+    <div class="container-fluid">
+        <RadzenFieldset Text="Pindex Search">
+            <div class="row">
+                <div class="col">
+                    <RadzenLabel Text="Candidate / Organization Name" />
+                    <RadzenTextBox @bind-Value="@canorgs" style="width: 100%;" Name="Canorgs" />
+
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Office" />
+                    <RadzenTextBox @bind-Value="@offices" style="width: 100%;" Name="Offices" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Party" />
+                    <RadzenTextBox @bind-Value="@parties" style="width: 100%;" Name="Parties" />
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="col">
+                    <RadzenLabel Text="Location" />
+                    <RadzenTextBox @bind-Value="@locations" style="width: 100%;" Name="Locations" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Year" />
+                    <RadzenTextBox @bind-Value="@years" style="width: 100%;" Name="Years" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Election Type" />
+                    <RadzenTextBox @bind-Value="@elections" style="width: 100%;" Name="ElectionTypes" />
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="col">
+                    <RadzenLabel Text="Categorizations" />
+                    <RadzenTextBox @bind-Value="@categorizations" style="width: 100%;" Name="Categorizations" />
+                </div>
+                <div class="col">
+                    <RadzenLabel Text="Issues" />
+                    <RadzenTextBox @bind-Value="@issues" style="width: 100%;" Name="Issues" />
+
+                </div>
+
+                <div class="col-2 align-items-center">
+                    <RadzenButton Click=@(args => SearchItems()) Text="Search" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Click=@(args => ClearSearchInput()) Text="Clear" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Click=@(args => ShowAddItemDialog()) Text="Add New Pin" ButtonStyle="ButtonStyle.Primary" />
+                </div>
+            </div>
+        </RadzenFieldset>
+    </div>
+</RadzenTemplateForm>
+
+<RadzenDataList WrapItems="true" AllowPaging="false" Data="@items" TItem="Item">
+    <Template Context="item">
+        <Pindex.Components.ItemCard item="@item" />
+    </Template>
+</RadzenDataList>
+<RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@pageSize" PageNumbersCount="5" />
+<RadzenDialog>
+</RadzenDialog>
+@code {
+
+    private string canorgs;
+    private string offices;
+    private string parties;
+    private string locations;
+    private string years;
+    private string elections;
+    private string categorizations;
+    private string issues;
+
+    string pagingSummaryFormat = "Displaying page {0} of {1} (total {2} records)";
+    int pageSize = 9;
+    int count;
+    Item item = new Item();
+    IEnumerable<Item> items;
+
+    private async Task SearchItems() {
+
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUriFromSearchParams());
+        var client = ClientFactory.CreateClient();
+        var response = await client.SendAsync(request);
+        if (response.IsSuccessStatusCode) {
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            items = await JsonSerializer.DeserializeAsync<IEnumerable<Item>>(responseStream);
+            count = items.Count();
+        } 
+    }
+
+    private Uri BuildUriFromSearchParams() {
+
+        string baseUri = "https://localhost:7003/api/item";
+
+        var queryParams = new Dictionary<string, string>();
+
+        if (!string.IsNullOrEmpty(canorgs)) {
+            queryParams.Add("candidates", canorgs);
+        }
+        if (!string.IsNullOrEmpty(offices)) {
+            queryParams.Add("offices", offices);
+        }
+        if (!string.IsNullOrEmpty(parties)) {
+            queryParams.Add("parties", parties);
+        }
+        if (!string.IsNullOrEmpty(locations)) {
+            queryParams.Add("locations", locations);
+        }
+        if (!string.IsNullOrEmpty(years)) {
+            queryParams.Add("years", years);
+        }
+        if (!string.IsNullOrEmpty(elections)) {
+            queryParams.Add("elections", elections);
+        }
+        if (!string.IsNullOrEmpty(categorizations)) {
+            queryParams.Add("categorizations", categorizations);
+        }
+        if (!string.IsNullOrEmpty(issues)) {
+            queryParams.Add("issues", issues);
+        }
+
+        return new Uri(QueryHelpers.AddQueryString(baseUri, queryParams));
+    }
+
+    private async Task ShowAddItemDialog() {
+
+        await DialogService.OpenAsync<AddItemDialog>("Add Item", null, new DialogOptions());
+    }
+
+    private void ClearSearchInput() {
+        canorgs = "";
+        offices = "";
+        parties = "";
+        locations = "";
+        years = "";
+        elections = "";
+        categorizations = "";
+        issues = "";
+    }
+}
