@@ -74,56 +74,7 @@
 
     <RadzenDataList WrapItems="true" AllowPaging="false" Data="@items" TItem="Item">
         <Template Context="item">
-            <RadzenCard Class="rz-my-12 rz-mx-auto" Style="max-width: 420px">
-                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
-                    <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(File.ReadAllBytes(item.imageUrl))}")" Style="width: 100px; height: 100px; border-radius: 50%;" />
-                    <RadzenStack Gap="0">
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Candidates / Organizations</RadzenText>
-                        @foreach (Canorg canorg in item.Canorgs) {
-                            <RadzenText TextStyle="TextStyle.Body1"><b>@(canorg.Name)</b></RadzenText>
-                        }
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Offices</RadzenText>
-                        @foreach (Office office in item.Offices) {
-                            <RadzenText TextStyle="TextStyle.Body1"><b>@(office.Name)</b></RadzenText>
-                        }
-                    </RadzenStack>
-                </RadzenStack>
-                <RadzenCard class="rz-background-color-primary-lighter rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
-                    <RadzenText TextStyle="TextStyle.H6" class="rz-color-primary-light"><strong>Election Information</strong></RadzenText>
-                    <RadzenRow RowGap="0">
-                        <RadzenColumn SizeSM="4">
-                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Location</RadzenText>
-                            @foreach (Location location in item.Locations) {
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@(location?.Name)</b></RadzenText>
-                            }
-                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Party</RadzenText>
-                            @foreach (Party party in item.Parties) {
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@(party?.Name)</b></RadzenText>
-                            }
-                        </RadzenColumn>
-                        <RadzenColumn SizeSM="4">
-                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Year</RadzenText>
-                            @if (String.IsNullOrEmpty(item.ElectionYear)) {
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@("Unknown")</b></RadzenText>
-                            } else {
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@(item?.ElectionYear)</b></RadzenText>
-                            }
-                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Election Type</RadzenText>
-                            @if (String.IsNullOrEmpty(item.ElectionYear)) {
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@("Unknown")</b></RadzenText>
-                            } else {
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@(item?.ElectionType)</b></RadzenText>
-                            }
-                        </RadzenColumn>
-                        <RadzenColumn SizeSM="4">
-                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Quantity</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1"><b>@(item?.Quantity)</b></RadzenText>
-                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-primary-light rz-display-flex rz-mt-4 rz-mb-0">Won</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1"><b>@(item.Won ? "Yes" : "No")</b></RadzenText>
-                        </RadzenColumn>
-                    </RadzenRow>
-                </RadzenCard>
-            </RadzenCard>
+            <Pindex.Components.ItemCard item="@item"/>
         </Template>
     </RadzenDataList>
     <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@pageSize" PageNumbersCount="5"/>
