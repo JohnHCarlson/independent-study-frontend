@@ -1,0 +1,245 @@
+﻿@using Data
+@using System.Text
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using Microsoft.AspNetCore.WebUtilities
+@using System.Net.Http.Headers
+
+@inject DialogService DialogService
+
+
+<div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <RadzenLabel Text="Candidates & Organizations" />
+                <RadzenTextBox @bind-Value="@submitCanorgs" Change="() => OnInputUpdate()" Name="submitCanorgs" />
+            </div>
+            <div class="col">
+                <RadzenLabel Text="Offices" />
+                <RadzenTextBox @bind-Value="@submitOffices" Change="() => OnInputUpdate()" Name="submitOffices" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <RadzenLabel Text="Locations" />
+                <RadzenTextBox @bind-Value="@submitLocations" Change="() => OnInputUpdate()" Name="submitLocations" />
+            </div>
+            <div class="col">
+                <RadzenLabel Text="Parties" />
+                <RadzenTextBox @bind-Value="@submitParties" Change="() => OnInputUpdate()" Name="submitParties" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <RadzenLabel Text="Election Year" />
+                <RadzenNumeric ShowUpDown="false" @bind-Value="@item.ElectionYear" Name="submitYear" />
+            </div>
+            <div class="col">
+                <RadzenLabel Text="Election Type" />
+                <RadzenTextBox @bind-Value="@item.ElectionType" Change="() => OnInputUpdate()" Name="submitElectionType" />
+            </div>
+            <div class="col">
+                <RadzenLabel Text="Won" />
+                <RadzenSwitch @bind-Value="@item.Won" Name="submitWon" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <RadzenLabel Text="Categorizations" />
+                <RadzenTextBox @bind-Value="@submitCategorizations" Name="submitCategorizations" />
+            </div>
+            <div class="col">
+                <RadzenLabel Text="Issues" />
+                <RadzenTextBox @bind-Value="@submitIssues" Name="submitIssues" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <RadzenLabel Text="Quantity" />
+                <RadzenNumeric ShowUpDown="false" @bind-Value="@item.Quantity" Name="submitQuantity" />
+            </div>
+            <div class="col">
+                <RadzenLabel Text="Storage Location" />
+                <RadzenTextBox @bind-Value="@item.StorageLocation" Name="submitStorageLocation" />
+            </div>
+            <div class="col">
+                <RadzenLabel Text="Notes" />
+                <RadzenTextBox @bind-Value="@item.Notes" Name="submitNotes" />
+            </div>
+            <div class="col">
+                <InputFile OnChange=@(args => OnInputFileChange(args))></InputFile>
+                <RadzenBadge Shade="Shade.Light" Visible=@UploadSuccess BadgeStyle="BadgeStyle.Success" Text="Success" />
+            </div>
+        </div>
+    </div>
+    <RadzenButton Click=@(args => SubmitItem()) Disabled=@disableSubmitButton Text="Submit" ButtonStyle="ButtonStyle.Primary" />
+    <RadzenButton Click=@(args => clearAddInput()) Text="Clear" ButtonStyle="ButtonStyle.Primary" />
+</div>
+
+@code {
+
+    private string submitCanorgs { get; set; }
+    private string submitOffices { get; set; }
+    private string submitParties { get; set; }
+    private string submitLocations { get; set; }
+    private string submitCategorizations { get; set; }
+    private string submitIssues { get; set; }
+
+    private bool disableSubmitButton = true;
+    private bool disableUploadButton = true;
+    private bool UploadSuccess = false;
+
+    private Item item = new Item();
+
+
+    private async void SubmitItem() {
+
+        HandleNestedData();
+
+        var json = JsonSerializer.Serialize(item);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var formData = new MultipartFormDataContent();
+        formData.Add(new StreamContent(item.imageFile.OpenReadStream()), "imageFile", item.imageFile.Name);
+
+        using (HttpClient client = new HttpClient()) {
+            var response = await client.PostAsync("https://localhost:7003/api/item", content);
+
+            if (response.IsSuccessStatusCode) {
+
+                clearAddInput();
+                DialogService.Close();
+            }
+        }
+    }
+
+    private async void OnInputFileChange(InputFileChangeEventArgs args) {
+
+        item.imageFile = args.File;
+
+        MultipartFormDataContent data = new MultipartFormDataContent();
+        data.Add(new StreamContent(item.imageFile.OpenReadStream()), "imageFile", item.imageFile.Name);
+
+        using (HttpClient client = new HttpClient()) {
+
+            var response = await client.PostAsync("https://localhost:7003/api/item/images", data);
+            if (response.IsSuccessStatusCode) {
+
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                ImageUploadResponse responseItem = await JsonSerializer.DeserializeAsync<ImageUploadResponse>(responseStream);
+                item.imageUrl = responseItem.imageUrl;
+                UploadSuccess = true;
+                OnInputUpdate();
+            }
+        }
+
+
+
+        DialogService.Refresh();
+    }
+
+    private async Task OnInputFileSubmit() {
+
+        MultipartFormDataContent data = new MultipartFormDataContent();
+        data.Add(new StreamContent(item.imageFile.OpenReadStream()), "imageFile", item.imageFile.Name);
+
+        using (HttpClient client = new HttpClient()) {
+
+            var response = await client.PostAsync("https://localhost:7003/api/item/images", data);
+            if (response.IsSuccessStatusCode) {
+
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                ImageUploadResponse responseItem = await JsonSerializer.DeserializeAsync<ImageUploadResponse>(responseStream);
+                item.imageUrl = responseItem.imageUrl;
+                UploadSuccess = true;
+                OnInputUpdate();
+            }
+        }
+    }
+
+    private void HandleNestedData() {
+
+        if (!String.IsNullOrWhiteSpace(submitCanorgs)) {
+            foreach (string subCanorg in submitCanorgs.Split(',')) {
+                Canorg canorg = new Canorg(subCanorg);
+                item.Canorgs.Add(canorg);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitOffices)) {
+
+            foreach (string subOffice in submitOffices.Split(',')) {
+                Office office = new Office(subOffice);
+                item.Offices.Add(office);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitLocations)) {
+            foreach (string subLocation in submitLocations.Split(',')) {
+                Location location = new Location(subLocation);
+                item.Locations.Add(location);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitParties)) {
+            foreach (string subParty in submitParties.Split(',')) {
+                Party party = new Party(subParty);
+                item.Parties.Add(party);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitCategorizations)) {
+            foreach (string subCategory in submitCategorizations.Split(',')) {
+                Categorization category = new Categorization(subCategory);
+                item.Categorizations.Add(category);
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(submitIssues)) {
+            foreach (string subIssue in submitIssues.Split(',')) {
+                Issue issue = new Issue(subIssue);
+                item.Issues.Add(issue);
+            }
+        }
+
+    }
+
+    private async void OnInputUpdate() {
+
+        if (String.IsNullOrEmpty(submitCanorgs)) {
+            disableSubmitButton = true;
+        } else if (String.IsNullOrEmpty(submitOffices)) {
+            disableSubmitButton = true;
+        } else if (String.IsNullOrEmpty(submitLocations)) {
+            disableSubmitButton = true;
+        } else if (String.IsNullOrEmpty(submitParties)) {
+            disableSubmitButton = true;
+        } else if (String.IsNullOrEmpty(item.ElectionType)) {
+            disableSubmitButton = true;
+        } else if (item.imageUrl == null) {
+            disableSubmitButton = true;
+        } else {
+            disableSubmitButton = false;
+        }
+        DialogService.Refresh();
+        //ds.Refresh();
+    }
+
+    public void clearAddInput() {
+
+        submitCanorgs = "";
+        submitOffices = "";
+        submitLocations = "";
+        submitParties = "";
+        submitCategorizations = "";
+        submitIssues = "";
+
+        disableSubmitButton = true;
+        disableUploadButton = true;
+        UploadSuccess = false;
+
+        item = new Item();
+        DialogService.Refresh();
+    }
+}
